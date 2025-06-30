@@ -1,48 +1,33 @@
+from typing import Dict
 
-from typing import Dict, Union
-
-from motor.motor_asyncio import AsyncIOMotorClient as MongoCli
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from config import MONGO_DB_URI
 
-mongo = MongoCli(MONGO_DB_URI)
-db = mongo.SONALI
+# Initialize MongoDB client and database
+mongo = AsyncIOMotorClient(MONGO_DB_URI)
+db = mongo["SONALI"]
 
-coupledb = db.couple
+# Collections
+coupledb = db["couple"]
+afkdb = db["afk"]
+nightmodedb = db["nightmode"]
+notesdb = db["notes"]
+filtersdb = db["filters"]
 
+# --- COUPLE SYSTEM ---
 
-afkdb = db.afk
+async def _get_lovers(cid: int) -> Dict:
+    data = await coupledb.find_one({"chat_id": cid})
+    return data["couple"] if data and "couple" in data else {}
 
-nightmodedb = db.nightmode
-
-notesdb = db.notes
-
-filtersdb = db.filters
-
-
-async def _get_lovers(cid: int):
-    lovers = await coupledb.find_one({"chat_id": cid})
-    if lovers:
-        lovers = lovers["couple"]
-    else:
-        lovers = {}
-    return lovers
-
-async def _get_image(cid: int):
-    lovers = await coupledb.find_one({"chat_id": cid})
-    if lovers:
-        lovers = lovers["img"]
-    else:
-        lovers = {}
-    return lovers
+async def _get_image(cid: int) -> str:
+    data = await coupledb.find_one({"chat_id": cid})
+    return data.get("img", "") if data else ""
 
 async def get_couple(cid: int, date: str):
     lovers = await _get_lovers(cid)
-    if date in lovers:
-        return lovers[date]
-    else:
-        return False
-
+    return lovers.get(date, False)
 
 async def save_couple(cid: int, date: str, couple: dict, img: str):
     lovers = await _get_lovers(cid)
@@ -50,5 +35,7 @@ async def save_couple(cid: int, date: str, couple: dict, img: str):
     await coupledb.update_one(
         {"chat_id": cid},
         {"$set": {"couple": lovers, "img": img}},
-        upsert=True,
+        upsert=True
     )
+
+# You can define more async DB functions here (e.g. for AFK, Notes, etc.)
