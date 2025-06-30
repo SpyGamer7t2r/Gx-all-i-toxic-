@@ -23,7 +23,7 @@ skipdb = mongodb.skipmode
 sudoersdb = mongodb.sudoers
 usersdb = mongodb.tgusersdb
 playlistdb = mongodb.playlist
-
+chatbotdb = mongodb.chatbot
 
 # Shifting to memory [mongo sucks often]
 active = []
