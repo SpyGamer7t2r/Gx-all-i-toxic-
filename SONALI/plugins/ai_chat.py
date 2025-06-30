@@ -5,25 +5,40 @@ from config import OPENAI_API_KEY
 from SONALI import app
 from SONALI.utils.database import is_chatbot_enabled
 
+# Set your OpenAI API key
 openai.api_key = OPENAI_API_KEY
 
-@app.on_message(filters.text & ~filters.command(["chatbot"]) & filters.private | filters.group)
+# AI Chat handler for private and group chats (if chatbot is enabled)
+@app.on_message(filters.text & ~filters.command(["chatbot"]) & (filters.private | filters.group))
 async def ai_chat(client, message: Message):
     chat_id = message.chat.id
 
-    # Check if chatbot is enabled
+    # Skip if chatbot is disabled
     if not await is_chatbot_enabled(chat_id):
         return
 
+    # Ignore bot messages
     if message.from_user and message.from_user.is_bot:
         return
 
+    # Avoid replying unless it's a direct reply to the bot or PM
+    if message.chat.type != "private":
+        if not message.reply_to_message:
+            return
+        if message.reply_to_message.from_user.id != (await app.get_me()).id:
+            return
+
     try:
-        reply = openai.ChatCompletion.create(
+        # Make request to OpenAI
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": message.text}]
+            messages=[
+                {"role": "system", "content": "You are a smart, helpful and friendly chatbot."},
+                {"role": "user", "content": message.text}
+            ]
         )
-        text = reply['choices'][0]['message']['content']
-        await message.reply_text(text)
+        reply_text = response["choices"][0]["message"]["content"]
+        await message.reply_text(reply_text)
+
     except Exception as e:
-        await message.reply_text("❌ ChatGPT Error: " + str(e))
+        await message.reply_text(f"❌ ChatGPT Error:\n`{str(e)}`")
