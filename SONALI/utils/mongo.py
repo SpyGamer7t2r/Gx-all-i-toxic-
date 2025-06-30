@@ -1,10 +1,9 @@
 from typing import Dict
 
 from motor.motor_asyncio import AsyncIOMotorClient
-
 from config import MONGO_DB_URI
 
-# Initialize MongoDB client and database
+# Mongo client setup
 mongo = AsyncIOMotorClient(MONGO_DB_URI)
 db = mongo["SONALI"]
 
@@ -15,7 +14,7 @@ nightmodedb = db["nightmode"]
 notesdb = db["notes"]
 filtersdb = db["filters"]
 
-# --- COUPLE SYSTEM ---
+# --- Couple System ---
 
 async def _get_lovers(cid: int) -> Dict:
     data = await coupledb.find_one({"chat_id": cid})
@@ -37,5 +36,3 @@ async def save_couple(cid: int, date: str, couple: dict, img: str):
         {"$set": {"couple": lovers, "img": img}},
         upsert=True
     )
-
-# You can define more async DB functions here (e.g. for AFK, Notes, etc.)
