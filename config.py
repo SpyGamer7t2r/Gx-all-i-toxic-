@@ -20,6 +20,9 @@ BOT_USERNAME = getenv("BOT_USERNAME","Sonali_Music_bot")
 BOT_NAME = getenv("BOT_NAME")
 # ---------------------------------------------------------
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# ---------------------------------------------------------
+
 
 # Get your mongo url from cloud.mongodb.com
 MONGO_DB_URI = getenv("MONGO_DB_URI", None)
